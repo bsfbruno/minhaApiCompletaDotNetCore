@@ -25,6 +25,7 @@ namespace DevIO.Api.Controllers
             _mapper = mapper;
         }
 
+        [HttpGet]
         public async Task<IEnumerable<FornecedorViewModel>> ObterTodos()
         {
             var fornecedor = _mapper.Map<IEnumerable<FornecedorViewModel>>(await _fornecedorRepository.ObterTodos());

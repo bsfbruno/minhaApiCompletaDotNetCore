@@ -34,12 +34,9 @@ namespace DevIO.Api
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
             });
             services.AddAutoMapper(typeof(Startup));
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
-            //Desabilitando validação automática da modelstate para personalizar respostas com erros
-            services.Configure<ApiBehaviorOptions>(options => 
-            {
-                options.SuppressModelStateInvalidFilter = true;
-            });
+
+            services.WebApiConfig();
+            
             services.ResolveDependencies();
         }
 
@@ -56,8 +53,7 @@ namespace DevIO.Api
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
-            app.UseMvc();
+            app.UseMvcConfiguration();
         }
     }
 }

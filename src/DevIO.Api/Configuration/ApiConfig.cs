@@ -15,9 +15,32 @@ namespace DevIO.Api.Configuration
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             
             //Desabilitando validação automática da modelstate para personalizar respostas com erros
+            //É recomendado não configurar o CORS, utilizar a configuração já implementada
             services.Configure<ApiBehaviorOptions>(options =>
             {
                 options.SuppressModelStateInvalidFilter = true;
+            });
+
+            //Exemplo de configuração de CORS, caso necessário
+            services.AddCors(options =>
+            {
+                options.AddPolicy("Development",
+                    builder =>
+                        builder
+                        .AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowCredentials());
+
+
+                options.AddPolicy("Production",
+                    builder =>
+                        builder
+                            .WithMethods("GET")
+                            .WithOrigins("http://desenvolvedor.io")
+                            .SetIsOriginAllowedToAllowWildcardSubdomains()
+                            //.WithHeaders(HeaderNames.ContentType, "x-custom-header")
+                            .AllowAnyHeader());
             });
 
             return services;

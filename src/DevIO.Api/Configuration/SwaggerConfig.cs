@@ -15,35 +15,7 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 namespace DevIO.Api.Configuration
 {
     public static class SwaggerConfig
-    {
-        //public static IServiceCollection AddSwaggerConfig(this IServiceCollection services)
-        //{
-        //    services.AddSwaggerGen(c =>
-        //    {
-        //        c.OperationFilter<SwaggerDefaultValues>();
-
-        //        var securityDefinition = new OpenApiSecurityScheme
-        //        {
-        //            Description = "Insira o token JWT desta maneira: Bearer {seu token}",
-        //            Name = "Authorization",
-        //            In = ParameterLocation.Header,
-        //            Type = SecuritySchemeType.ApiKey,
-        //            Scheme = "Bearer"
-        //        };
-
-        //        var security = new OpenApiSecurityRequirement()
-        //        {
-        //            {securityDefinition, new string[] { }}
-        //        };
-
-        //        c.AddSecurityDefinition("Bearer", securityDefinition);
-
-        //        c.AddSecurityRequirement(security);
-        //    });
-
-        //    return services;
-        //}
-
+    {        
         public static IServiceCollection AddSwaggerConfig(this IServiceCollection services)
         {
             services.AddSwaggerGen(c =>
@@ -87,6 +59,9 @@ namespace DevIO.Api.Configuration
 
         public static IApplicationBuilder UseSwaggerConfig(this IApplicationBuilder app, IApiVersionDescriptionProvider provider)
         {
+            //Para utilizar o Middleware que exige a autenticação para acessar o swagger é necessário apenas descomentar a linha abaixo para utilizá-lo
+            //app.UseMiddleware<SwaggerAuthorizedMiddleware>();
+
             app.UseSwagger();
             app.UseSwaggerUI(
                 options =>
@@ -99,8 +74,6 @@ namespace DevIO.Api.Configuration
             return app;
         }
     }
-
-    
 
     public class ConfigureSwaggerOptions : IConfigureOptions<SwaggerGenOptions>
     {
@@ -159,13 +132,30 @@ namespace DevIO.Api.Configuration
                     parameter.Description = description.ModelMetadata?.Description;
                 }
 
-                //if (parameter.Default == null)
-                //{
-                //    parameter.Default = description.DefaultValue;
-                //}
-
                 parameter.Required |= description.IsRequired;
             }
+        }
+    }
+
+    public class SwaggerAuthorizedMiddleware
+    {
+        private readonly RequestDelegate _next;
+
+        public SwaggerAuthorizedMiddleware(RequestDelegate next)
+        {
+            _next = next;
+        }
+
+        public async Task Invoke(HttpContext context)
+        {
+            if (context.Request.Path.StartsWithSegments("/swagger")
+                && !context.User.Identity.IsAuthenticated)
+            {
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                return;
+            }
+
+            await _next.Invoke(context);
         }
     }
 }
